@@ -1702,6 +1702,7 @@ dependencies = [
     { name = "pyserial" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://mirrors.aliyun.com/pypi/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://mirrors.aliyun.com/pypi/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "setuptools" },
 ]
 
 [package.dev-dependencies]
@@ -1719,6 +1720,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pyserial", specifier = ">=3.5" },
     { name = "scipy", specifier = ">=1.15.3" },
+    { name = "setuptools", specifier = "<82" },
 ]
 
 [package.metadata.requires-dev]
@@ -2650,11 +2652,11 @@ wheels = [
 
 [[package]]
 name = "setuptools"
-version = "82.0.1"
+version = "81.0.0"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
-sdist = { url = "https://mirrors.aliyun.com/pypi/packages/4f/db/cfac1baf10650ab4d1c111714410d2fbb77ac5a616db26775db562c8fab2/setuptools-82.0.1.tar.gz", hash = "sha256:7d872682c5d01cfde07da7bccc7b65469d3dca203318515ada1de5eda35efbf9" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/0d/1c/73e719955c59b8e424d015ab450f51c0af856ae46ea2da83eba51cc88de1/setuptools-81.0.0.tar.gz", hash = "sha256:487b53915f52501f0a79ccfd0c02c165ffe06631443a886740b91af4b7a5845a" }
 wheels = [
-    { url = "https://mirrors.aliyun.com/pypi/packages/9d/76/f789f7a86709c6b087c5a2f52f911838cad707cc613162401badc665acfe/setuptools-82.0.1-py3-none-any.whl", hash = "sha256:a59e362652f08dcd477c78bb6e7bd9d80a7995bc73ce773050228a348ce2e5bb" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/e1/e3/c164c88b2e5ce7b24d667b9bd83589cf4f3520d97cad01534cd3c4f55fdb/setuptools-81.0.0-py3-none-any.whl", hash = "sha256:fdd925d5c5d9f62e4b74b30d6dd7828ce236fd6ed998a08d81de62ce5a6310d6" },
 ]
 
 [[package]]

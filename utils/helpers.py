@@ -305,6 +305,71 @@ def list_available_boards():
     except ImportError:
         return [{"error": "brainflow not installed. Run: pip install brainflow"}]
 
+def parse_and_print_desc(board_id):
+    """
+    获取并解析指定板卡的描述信息
+    """
+    try:
+        import json
+        from brainflow.board_shim import BoardShim
+        # 1. 获取原始描述字典
+        desc = BoardShim.get_board_descr(board_id)
+        
+        print(f"--- 📋 板卡 ID {board_id} 的详细描述 ---")
+        # 如果是 OpenBCI Cyton，通常会返回类似下面的结构
+        # 注意：不同版本的 brainflow 返回的具体字段可能略有差异
+        
+        # 2. 格式化输出 (模拟人类可读的解析)
+        print(f"{'参数名称':<20} | {'值':<30} | {'说明'}")
+        print("-" * 70)
+        
+        for key, value in desc.items():
+            description = ""
+            
+            # 根据常见的 BrainFlow 字段进行语义解释
+            if key == "accel_channels":
+                description = "加速度计通道数"
+            elif key == "analog_channels":
+                description = "模拟通道数"
+            elif key == "eeg_channels":
+                description = "脑电通道数"
+            elif key == "ecg_channels":
+                description = "心电通道数"
+            elif key == "eeg_names":
+                description = "脑电通道名称"
+            elif key == "emg_channels":
+                description = "肌电通道数"
+            elif key == "eog_channels":
+                description = "眼动通道数"
+            elif key == "marker_channel":
+                description = "标记通道数"
+            elif key == "name":
+                description = "板卡名称"
+            elif key == "num_rows":
+                description = "数据矩阵的总列数"
+            elif key == "other_channels":
+                description = "保留通道数"
+            elif key == "package_num_channel":
+                description = "包序号通道索引"
+            elif key == "sampling_rate":
+                description = "采样率"
+            elif key == "timestamp_channel":
+                description = "时间戳通道索引"
+            
+            # 打印解析后的行
+            print(f"{key:<23} | {str(value):<30} | {description}")
+            
+        print("-" * 70)
+        
+        # 3. 如果你需要将其作为 JSON 字符串用于日志记录
+        json_str = json.dumps(desc, indent=4)
+        return json_str
+        # print("JSON 格式备份:\n", json_str) 
+    except Exception as e:
+        print(f"❌ 获取描述信息失败: {e}")
+        return None
+
+
 
 def create_cyton_board(serial_port="", board_id=0, daisy=False):
     """创建并返回 BrainFlow BoardShim 实例。"""
