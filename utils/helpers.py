@@ -6,6 +6,7 @@ OpenBCI Cyton 学习计划 — 共享工具函数
 """
 
 import numpy as np
+# 从 scipy 库导入信号处理模块，用于数字滤波器设计和频谱分析
 from scipy import signal as sp_signal
 import matplotlib.pyplot as plt
 
@@ -47,26 +48,40 @@ def generate_synthetic_eeg(
     times = np.arange(n_samples) / sfreq
 
     # 1/f 背景噪声（粉红噪声）
+    # 计算 FFT 频率轴（实数 FFT，仅非负频率）
+    # rfftfreq 返回的 freqs 范围是 [0, sfreq/2]，长度为 n_samples//2 + 1
     freqs = np.fft.rfftfreq(n_samples, d=1.0 / sfreq)
-    pink_noise_spectrum = np.where(freqs > 0, 1.0 / np.sqrt(freqs), 0.0)
+    
+    # 构建 1/f 频谱（粉红噪声特性）：功率谱密度与频率成反比
+    # 公式：S(f) ∝ 1/√f，即幅度谱 ∝ 1/√f，功率谱 ∝ 1/f
+    # 先将零频率分量替换为非零值，避免 np.where 参数预计算时出现除以零
+    safe_freqs = np.where(freqs > 0, freqs, 1.0)  # freq=0 时用 1.0 替代
+    pink_noise_spectrum = 1.0 / np.sqrt(safe_freqs)
+    pink_noise_spectrum[0] = 0.0  # 显式将直流分量置零
+    
+    # 显式将直流分量（0 Hz）置零，确保无直流偏移
+    # 虽然 np.where 已处理，但此处双重保险，避免数值精度问题
     pink_noise_spectrum[0] = 0.0
 
     data = np.zeros((n_channels, n_samples))
     for ch in range(n_channels):
         # 随机相位生成粉红噪声时域信号
         phase = rng.uniform(0, 2 * np.pi, len(freqs))
-        spectrum = pink_noise_spectrum * np.exp(1j * phase)
-        pink = np.fft.irfft(spectrum, n=n_samples)
+        spectrum = pink_noise_spectrum * np.exp(1j * phase) # 添加随机相位
+        pink = np.fft.irfft(spectrum, n=n_samples) # 反 FFT 得到时域信号
+        # 归一化到指定噪声水平
         pink = pink / np.std(pink) * noise_level
 
         # alpha 振荡 (8-13 Hz)，模拟后部电极 alpha 更强
-        alpha_freq = rng.uniform(8.5, 12.5)
+        # 生成 alpha 频段正弦波（8-13 Hz），模拟后部电极 alpha 活动更强的生理特征
+        alpha_freq = rng.uniform(8.5, 12.5)  # 随机选择 alpha 频率，增加信号自然性
+        # 振幅随通道索引递增：通道号越大（对应后部电极），alpha 功率越强
         alpha_amp = alpha_power * (0.5 + 0.5 * (ch / n_channels))
         alpha = alpha_amp * np.sin(2 * np.pi * alpha_freq * times)
 
-        # 60 Hz 工频干扰（北美/中国标准）
+        # 50 Hz 工频干扰（中国标准）
         line_noise_amp = rng.uniform(0.5, 2.0)
-        line_noise = line_noise_amp * np.sin(2 * np.pi * 60.0 * times)
+        line_noise = line_noise_amp * np.sin(2 * np.pi * 50.0 * times)
 
         data[ch] = pink + alpha + line_noise
 
@@ -227,12 +242,23 @@ def plot_psd(data, sfreq=250.0, title="Power Spectral Density",
     fig, ax = plt.subplots(figsize=figsize)
 
     for ch in range(n_channels):
+        # 计算功率谱密度（PSD）：使用 Welch 方法
         freqs, psd = sp_signal.welch(
-            data[ch], fs=sfreq, nperseg=int(sfreq * 2), noverlap=int(sfreq)
+            data[ch],           # 输入信号：第 ch 个通道的时间序列数据
+            fs=sfreq,           # 采样率：信号的采样频率（Hz），用于正确计算频率轴
+            nperseg=int(sfreq * 2),  # 每段长度：每个窗的样本数，此处设为 2 秒数据（Welch 方法的分段长度）
+            noverlap=int(sfreq)      # 重叠长度：相邻窗之间的重叠样本数，此处设为 1 秒（50% 重叠）
         )
+        # 根据指定频率范围创建掩码，筛选有效频段数据
         mask = (freqs >= freq_range[0]) & (freqs <= freq_range[1])
-        ax.semilogy(freqs[mask], psd[mask], color=colors[ch],
-                     label=channel_names[ch], linewidth=1.2)
+        # 使用对数坐标绘制功率谱密度曲线，便于观察各频段能量分布
+        ax.semilogy(
+            freqs[mask], 
+            psd[mask], 
+            color=colors[ch],
+            label=channel_names[ch], 
+            linewidth=1.2
+        )
 
     # 标注 EEG 频段
     bands = {"delta": (0.5, 4), "theta": (4, 8), "alpha": (8, 13),
