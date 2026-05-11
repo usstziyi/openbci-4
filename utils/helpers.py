@@ -81,7 +81,7 @@ def generate_synthetic_eeg(
 
         # 50 Hz 工频干扰（中国标准）
         line_noise_amp = rng.uniform(0.5, 2.0)
-        line_noise = line_noise_amp * np.sin(2 * np.pi * 50.0 * times)
+        line_noise = 20 * np.sin(2 * np.pi * 50.0 * times)
 
         data[ch] = pink + alpha + line_noise
 
@@ -154,7 +154,7 @@ def parse_cyton_packet(packet):
 
 def design_bandpass_filter(lowcut, highcut, sfreq=250.0, order=4):
     """
-    设计巴特沃斯带通滤波器系数。
+    设计巴特沃斯 带通滤波器系数。
 
     Parameters
     ----------
@@ -175,18 +175,21 @@ def design_bandpass_filter(lowcut, highcut, sfreq=250.0, order=4):
     nyquist = 0.5 * sfreq
     low = lowcut / nyquist
     high = highcut / nyquist
+    # order: 滤波器阶数，决定滤波器滚降陡度
+    # [low, high]: 归一化截止频率，范围 [0, 1]，其中 1 对应奈奎斯特频率
+    # btype="band": 滤波器类型为带通，保留 low 和 high 之间的频率成分
     b, a = sp_signal.butter(order, [low, high], btype="band")
     return b, a
 
 
-def design_notch_filter(freq=60.0, sfreq=250.0, quality_factor=30.0):
+def design_notch_filter(freq=50.0, sfreq=250.0, quality_factor=30.0):
     """
     设计 IIR 陷波滤波器（去除工频干扰）。
 
     Parameters
     ----------
     freq : float
-        目标频率（Hz），中国/北美 60 Hz，欧洲 50 Hz
+        目标频率（Hz），50 Hz
     sfreq : float
         采样率（Hz）
     quality_factor : float
