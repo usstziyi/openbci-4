@@ -443,13 +443,14 @@ def compute_band_powers(data, sfreq=250.0, bands=None):
         axis=-1,        # 计算 PSD 的轴：-1 表示沿最后一个轴（时间轴）计算
         nperseg=int(sfreq * 2),  # 每段长度：每个窗的样本数，此处设为 2 秒数据（Welch 方法的分段长度）
     )
-    # psd_all shape: (n_channels, n_freqs)
+    # freqs : (n_freqs,) n_freqs = nperseg // 2 + 1
+    # psd_all : (n_channels, n_freqs)
 
 
 
     # 先对所有通道求平均 PSD
     mean_psd = psd_all.mean(axis=0)
-    # mean_psd shape: (n_freqs,)
+    # mean_psd : (n_freqs,)
 
     # 总功率：对整个频率范围积分
     total_power = np.trapezoid(mean_psd, freqs)
@@ -465,6 +466,7 @@ def compute_band_powers(data, sfreq=250.0, bands=None):
         if not np.any(mask):
             band_power = 0.0
         else:
+            # 使用梯形法对频段内的 PSD 进行数值积分，得到该频段的绝对功率
             band_power = np.trapezoid(mean_psd[mask], freqs[mask])
 
         results[name] = {
