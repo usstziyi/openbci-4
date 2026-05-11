@@ -399,27 +399,79 @@ def create_cyton_board(serial_port="", board_id=0, daisy=False):
 # ============================================================
 
 def compute_band_powers(data, sfreq=250.0, bands=None):
-    """计算信号在指定频段内的绝对和相对功率。"""
+    """
+    计算 EEG 信号在指定频段内的绝对功率和相对功率。
+
+    Parameters
+    ----------
+    data : np.ndarray
+        EEG 数据。
+        形状可以是：
+        - (n_samples,)
+        - (n_channels, n_samples)
+
+    sfreq : float
+        采样率，单位 Hz。
+
+    bands : dict
+        频段定义，例如：
+        {
+            "delta": (0.5, 4),
+            "theta": (4, 8),
+            ...
+        }
+
+    Returns
+    -------
+    results : dict
+        每个频段的绝对功率和相对功率。
+    """
     if bands is None:
         bands = {
-            "delta": (0.5, 4), "theta": (4, 8), "alpha": (8, 13),
-            "beta": (13, 30), "gamma": (30, 45),
+            "delta": (0.5, 4), 
+            "theta": (4, 8), 
+            "alpha": (8, 13),
+            "beta": (13, 30), 
+            "gamma": (30, 45),
         }
+    # 如果是单通道信号，转成二维：(1, n_samples)
     if data.ndim == 1:
         data = data[np.newaxis, :]
-    freqs, psd_all = sp_signal.welch(data, fs=sfreq, axis=-1,
-                                      nperseg=int(sfreq * 2))
-    total_power = np.trapz(psd_all.mean(axis=0), freqs)
+    freqs, psd_all = sp_signal.welch(
+        data,           # 输入信号：多通道 EEG 数据，形状为 (n_channels, n_samples)
+        fs=sfreq,       # 采样率：信号的采样频率（Hz），用于正确计算频率轴
+        axis=-1,        # 计算 PSD 的轴：-1 表示沿最后一个轴（时间轴）计算
+        nperseg=int(sfreq * 2),  # 每段长度：每个窗的样本数，此处设为 2 秒数据（Welch 方法的分段长度）
+    )
+    # psd_all shape: (n_channels, n_freqs)
+
+
+
+    # 先对所有通道求平均 PSD
+    mean_psd = psd_all.mean(axis=0)
+    # mean_psd shape: (n_freqs,)
+
+    # 总功率：对整个频率范围积分
+    total_power = np.trapezoid(mean_psd, freqs)
+
     if total_power == 0:
         total_power = 1.0
+
     results = {}
+
     for name, (lo, hi) in bands.items():
         mask = (freqs >= lo) & (freqs <= hi)
-        band_power = np.trapz(psd_all[:, mask].mean(axis=0), freqs[mask])
+
+        if not np.any(mask):
+            band_power = 0.0
+        else:
+            band_power = np.trapezoid(mean_psd[mask], freqs[mask])
+
         results[name] = {
             "absolute": band_power,
-            "relative": band_power / total_power
+            "relative": band_power / total_power,
         }
+
     return results
 
 
