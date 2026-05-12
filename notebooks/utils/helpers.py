@@ -26,7 +26,7 @@ def generate_synthetic_eeg(
     duration : float
         信号时长（秒）
     sfreq : float
-        采样率（Hz），Cyton 默认 250 SPS
+        采样率 Hz, Cyton 默认 250 SPS
     n_channels : int
         通道数，默认 8
     noise_level : float
@@ -38,14 +38,15 @@ def generate_synthetic_eeg(
 
     Returns
     -------
-    data : ndarray, shape (n_channels, n_samples)
+    # 为生成的模拟 EEG 数据添加类型注解，指定其为 numpy 数组
+    data : np.ndarray, shape (n_channels, n_samples)
         模拟 EEG 数据（muV）
     times : ndarray, shape (n_samples,)
         时间向量（秒）
     """
     rng = np.random.default_rng(seed)
-    n_samples = int(duration * sfreq)
-    times = np.arange(n_samples) / sfreq
+    n_samples = int(duration * sfreq) # 采样点数
+    times = np.arange(n_samples) / sfreq # 时间轴
 
     # 1/f 背景噪声（粉红噪声）
     # 计算 FFT 频率轴（实数 FFT，仅非负频率）
@@ -311,6 +312,8 @@ def list_available_boards():
 def parse_and_print_desc(board_id):
     """
     获取并解析指定板卡的描述信息
+    Parameters:
+    board_id (int): 板卡 ID，例如 0 表示 Cyton，2 表示 Cyton+Daisy
     """
     try:
         import json
