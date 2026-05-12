@@ -608,6 +608,20 @@ wheels = [
 ]
 
 [[package]]
+name = "edfio"
+version = "0.4.13"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
+dependencies = [
+    { name = "numpy", version = "2.2.6", source = { registry = "https://mirrors.aliyun.com/pypi/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.4", source = { registry = "https://mirrors.aliyun.com/pypi/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/2f/84/68b9cffe050757f2399ce85801c813eaa016f1a690234c0d091b34aca911/edfio-0.4.13.tar.gz", hash = "sha256:1744a7e7fc354d4e39082edcd4cac72ec1fa13414ca8a07c630d35f78da6c4dd" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/51/2e/4c3ef336aa46144d5c166d25357d78de94049787a0afb7824e7c9dc44ec0/edfio-0.4.13-py3-none-any.whl", hash = "sha256:d70a1e50f7eb89f3af8c74d96a4daa7a0a7f74b82a8ee2fd01992267396afa23" },
+]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
@@ -1701,6 +1715,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "brainflow" },
+    { name = "edfio" },
     { name = "ipykernel" },
     { name = "matplotlib" },
     { name = "mne" },
@@ -1727,6 +1742,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "brainflow", specifier = ">=5.21.0" },
+    { name = "edfio", specifier = ">=0.4.13" },
     { name = "ipykernel", specifier = ">=7.2.0" },
     { name = "matplotlib", specifier = ">=3.10.9" },
     { name = "mne", specifier = ">=1.12.1" },
